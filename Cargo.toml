@@ -1,0 +1,61 @@
+[package]
+name = "homo"
+version = "0.1.0"
+edition = "2021"
+authors = ["homo contributors"]
+description = "A homomorphic encryption command-line tool — like openssl, for FHE"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/mahdi13830510/homo"
+readme = "README.md"
+keywords = ["cryptography", "homomorphic", "encryption", "fhe", "education"]
+categories = ["cryptography", "command-line-utilities"]
+
+[[bin]]
+name = "homo"
+path = "src/main.rs"
+
+[lib]
+name = "homo"
+path = "src/lib.rs"
+
+[dependencies]
+# Big-integer arithmetic — the only "crypto-adjacent" dep we use.
+# Everything else (Paillier, BFV-lite, RLWE, NTT) is implemented from scratch
+# so students can read it.
+num-bigint = { version = "0.4", features = ["rand", "serde"] }
+num-integer = "0.1"
+num-traits = "0.2"
+
+# CLI parsing
+clap = { version = "4.5", features = ["derive"] }
+
+# RNG — using OS randomness via getrandom under the hood
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Serialization for keys / ciphertexts on disk
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1.3"
+base64 = "0.22"
+
+# Pretty terminal output
+colored = "2.1"
+indicatif = "0.17"
+
+# Hashing for fingerprints
+sha2 = "0.10"
+
+[dev-dependencies]
+proptest = "1.4"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+debug = false
+strip = true
+
+[profile.bench]
+opt-level = 3
+lto = "fat"
