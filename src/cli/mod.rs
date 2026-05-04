@@ -277,11 +277,8 @@ fn cmd_keygen(scheme: Scheme, bits: u64, out_pub: &str, out_sec: &str) -> Result
             (wire::pack_paillier_pk(&pk), wire::pack_paillier_sk(&sk))
         }
         Scheme::Bfv => {
-            let params = if bits >= 1024 {
-                bfv::Params::toy()
-            } else {
-                bfv::Params::toy()
-            };
+            let _ = bits;
+            let params = bfv::Params::toy();
             let (pk, sk) = bfv::keygen(&params);
             (wire::pack_bfv_pk(&pk), wire::pack_bfv_sk(&sk))
         }
@@ -889,6 +886,7 @@ fn print_ascii_plot(xs: &[f64], ys: &[f64], width: usize, height: usize) {
     let mut grid = vec![vec![' '; width]; height];
 
     // Simple linear interpolation between sample points.
+    #[allow(clippy::needless_range_loop)]
     for w in 0..width {
         let x = xmin + xspan * w as f64 / (width - 1) as f64;
         // Find bracketing sample indices
@@ -928,10 +926,8 @@ fn print_ascii_plot(xs: &[f64], ys: &[f64], width: usize, height: usize) {
     }
     println!("  └{}", "─".repeat(width));
     println!(
-        "    {} ←{:>frac$}→ {}",
-        format!("{xmin:.2}"),
+        "    {xmin:.2} ←{:>frac$}→ {xmax:.2}",
         " ",
-        format!("{xmax:.2}"),
         frac = width.saturating_sub(10)
     );
 }

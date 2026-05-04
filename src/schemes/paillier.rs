@@ -82,7 +82,10 @@ impl PublicKey {
 /// `bits` is the *modulus* size; each prime gets `bits / 2` bits. For real
 /// use, `bits >= 2048`; for lecture demos, `bits = 256` decrypts in a blink.
 pub fn keygen(bits: u64) -> (PublicKey, SecretKey) {
-    assert!(bits >= 16 && bits % 2 == 0, "bits must be even and ≥ 16");
+    assert!(
+        bits >= 16 && bits.is_multiple_of(2),
+        "bits must be even and ≥ 16"
+    );
     let mut rng = util::rng();
 
     // Sample two distinct primes of half the requested width.

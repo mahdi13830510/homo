@@ -130,7 +130,7 @@ pub fn trace_paillier_add(a: u64, b: u64, bits: u64) -> Vec<TraceStep> {
 
     let m_sum = paillier::decrypt(&sk, &ct_sum);
     steps.push(
-        TraceStep::new("decrypt", format!("Recovered plaintext.")).with_snapshot(format!(
+        TraceStep::new("decrypt", "Recovered plaintext.").with_snapshot(format!(
             "m_sum = {} (expected {})",
             m_sum,
             a + b
