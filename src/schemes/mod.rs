@@ -3,10 +3,10 @@
 //! Each submodule is self-contained and over-commented so it doubles as
 //! lecture notes. Performance is a non-goal here — clarity is.
 
-pub mod paillier;
 pub mod bfv;
 pub mod bgn;
 pub mod ckks;
+pub mod paillier;
 
 use serde::{Deserialize, Serialize};
 

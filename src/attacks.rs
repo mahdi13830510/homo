@@ -30,7 +30,11 @@ pub fn factor_trial_division(n: &BigUint, max_steps: u64) -> Option<Factorisatio
     let two = BigUint::from(2u32);
     if n.is_even() {
         let q = n / &two;
-        return Some(Factorisation { p: two, q, steps: 1 });
+        return Some(Factorisation {
+            p: two,
+            q,
+            steps: 1,
+        });
     }
     let mut steps = 1u64;
     while &d * &d <= *n && steps < max_steps {
@@ -48,7 +52,11 @@ pub fn factor_trial_division(n: &BigUint, max_steps: u64) -> Option<Factorisatio
 pub fn factor_pollard_rho(n: &BigUint, max_steps: u64) -> Option<Factorisation> {
     if n.is_even() {
         let two = BigUint::from(2u32);
-        return Some(Factorisation { p: two.clone(), q: n / &two, steps: 1 });
+        return Some(Factorisation {
+            p: two.clone(),
+            q: n / &two,
+            steps: 1,
+        });
     }
     let mut rng = util::rng();
     for _outer in 0..8 {
@@ -77,7 +85,11 @@ pub fn factor_pollard_rho(n: &BigUint, max_steps: u64) -> Option<Factorisation> 
 ///
 /// This is the obvious lesson: factor `n` and the whole thing falls.
 pub fn recover_paillier_sk(pk: &paillier::PublicKey, fact: &Factorisation) -> paillier::SecretKey {
-    assert_eq!(&fact.p * &fact.q, pk.n, "factorisation must match the modulus");
+    assert_eq!(
+        &fact.p * &fact.q,
+        pk.n,
+        "factorisation must match the modulus"
+    );
     let p_minus_1: BigUint = &fact.p - 1u32;
     let q_minus_1: BigUint = &fact.q - 1u32;
     let lambda = p_minus_1.lcm(&q_minus_1);
@@ -87,7 +99,11 @@ pub fn recover_paillier_sk(pk: &paillier::PublicKey, fact: &Factorisation) -> pa
     let g_lambda = util::mod_pow(&g, &lambda, &n_sq);
     let l_value = (&g_lambda - 1u32) / &pk.n;
     let mu = util::mod_inverse(&l_value, &pk.n).expect("μ must invert");
-    paillier::SecretKey { lambda, mu, pk: pk.clone() }
+    paillier::SecretKey {
+        lambda,
+        mu,
+        pk: pk.clone(),
+    }
 }
 
 /// Brute-force search for a small plaintext.

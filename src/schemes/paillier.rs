@@ -110,7 +110,11 @@ pub fn keygen(bits: u64) -> (PublicKey, SecretKey) {
     let mu = util::mod_inverse(&l_value, &n).expect("μ must be invertible");
 
     let pk = PublicKey { n };
-    let sk = SecretKey { lambda, mu, pk: pk.clone() };
+    let sk = SecretKey {
+        lambda,
+        mu,
+        pk: pk.clone(),
+    };
     (pk, sk)
 }
 
@@ -160,7 +164,9 @@ pub fn decrypt(sk: &SecretKey, ct: &Ciphertext) -> BigUint {
 /// `Enc(m₁) · Enc(m₂) (mod n²)` decrypts to `m₁ + m₂ (mod n)`.
 pub fn add(pk: &PublicKey, a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
     let n_sq = pk.n_squared();
-    Ciphertext { c: (&a.c * &b.c).mod_floor(&n_sq) }
+    Ciphertext {
+        c: (&a.c * &b.c).mod_floor(&n_sq),
+    }
 }
 
 /// Homomorphic addition of a *plaintext* to a ciphertext.
@@ -171,7 +177,9 @@ pub fn add(pk: &PublicKey, a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
 pub fn add_plain(pk: &PublicKey, ct: &Ciphertext, k: &BigUint) -> Ciphertext {
     let n_sq = pk.n_squared();
     let factor = (BigUint::one() + &pk.n * k.mod_floor(&pk.n)).mod_floor(&n_sq);
-    Ciphertext { c: (&ct.c * factor).mod_floor(&n_sq) }
+    Ciphertext {
+        c: (&ct.c * factor).mod_floor(&n_sq),
+    }
 }
 
 /// Homomorphic multiplication of a ciphertext by a *plaintext* scalar.
@@ -179,7 +187,9 @@ pub fn add_plain(pk: &PublicKey, ct: &Ciphertext, k: &BigUint) -> Ciphertext {
 /// `Enc(m)^k (mod n²)` decrypts to `k · m (mod n)`.
 pub fn mul_plain(pk: &PublicKey, ct: &Ciphertext, k: &BigUint) -> Ciphertext {
     let n_sq = pk.n_squared();
-    Ciphertext { c: util::mod_pow(&ct.c, k, &n_sq) }
+    Ciphertext {
+        c: util::mod_pow(&ct.c, k, &n_sq),
+    }
 }
 
 /// Re-randomise a ciphertext without changing the underlying plaintext.
@@ -191,7 +201,9 @@ pub fn rerandomize(pk: &PublicKey, ct: &Ciphertext) -> Ciphertext {
     let r = util::rand_coprime(&mut rng, &pk.n);
     let n_sq = pk.n_squared();
     let r_to_n = util::mod_pow(&r, &pk.n, &n_sq);
-    Ciphertext { c: (&ct.c * r_to_n).mod_floor(&n_sq) }
+    Ciphertext {
+        c: (&ct.c * r_to_n).mod_floor(&n_sq),
+    }
 }
 
 #[cfg(test)]

@@ -28,13 +28,13 @@
 #![warn(missing_docs)]
 #![allow(clippy::needless_range_loop)]
 
-pub mod schemes;
-pub mod viz;
-pub mod playground;
 pub mod attacks;
 pub mod bench;
 pub mod io;
+pub mod playground;
+pub mod schemes;
 pub mod util;
+pub mod viz;
 
 /// The crate version, exposed as a string.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

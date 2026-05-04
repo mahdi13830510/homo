@@ -23,7 +23,11 @@ pub struct TraceStep {
 impl TraceStep {
     /// Build a new step.
     pub fn new(label: impl Into<String>, detail: impl Into<String>) -> Self {
-        Self { label: label.into(), detail: detail.into(), snapshot: None }
+        Self {
+            label: label.into(),
+            detail: detail.into(),
+            snapshot: None,
+        }
     }
 
     /// Attach a value snapshot (will be truncated for display).
@@ -88,8 +92,11 @@ pub fn trace_paillier_add(a: u64, b: u64, bits: u64) -> Vec<TraceStep> {
 
     let (pk, sk) = paillier::keygen(bits);
     steps.push(
-        TraceStep::new("keygen", format!("Generated a {bits}-bit Paillier key pair."))
-            .with_snapshot(format!("n = {}", short_uint(&pk.n))),
+        TraceStep::new(
+            "keygen",
+            format!("Generated a {bits}-bit Paillier key pair."),
+        )
+        .with_snapshot(format!("n = {}", short_uint(&pk.n))),
     );
 
     let m_a = BigUint::from(a);
@@ -123,8 +130,11 @@ pub fn trace_paillier_add(a: u64, b: u64, bits: u64) -> Vec<TraceStep> {
 
     let m_sum = paillier::decrypt(&sk, &ct_sum);
     steps.push(
-        TraceStep::new("decrypt", format!("Recovered plaintext."))
-            .with_snapshot(format!("m_sum = {} (expected {})", m_sum, a + b)),
+        TraceStep::new("decrypt", format!("Recovered plaintext.")).with_snapshot(format!(
+            "m_sum = {} (expected {})",
+            m_sum,
+            a + b
+        )),
     );
     steps
 }
@@ -151,16 +161,19 @@ pub fn trace_bfv_add(a: u64, b: u64) -> Vec<TraceStep> {
     let ct_a = bfv::encrypt(&pk, &[a]);
     let (n_a, log_a, budget_a) = bfv::noise_estimate(&sk, &ct_a);
     steps.push(
-        TraceStep::new("enc(a)", format!("Encrypted vector [{a}]."))
-            .with_snapshot(format!(
-                "noise ≈ 2^{:.1}, budget ≈ {:.1} bits ({})",
-                log_a, budget_a, short_int(&n_a)
-            )),
+        TraceStep::new("enc(a)", format!("Encrypted vector [{a}].")).with_snapshot(format!(
+            "noise ≈ 2^{:.1}, budget ≈ {:.1} bits ({})",
+            log_a,
+            budget_a,
+            short_int(&n_a)
+        )),
     );
 
     let ct_b = bfv::encrypt(&pk, &[b]);
-    steps.push(TraceStep::new("enc(b)", format!("Encrypted vector [{b}]."))
-        .with_snapshot("noise ~ same order as enc(a)".to_string()));
+    steps.push(
+        TraceStep::new("enc(b)", format!("Encrypted vector [{b}]."))
+            .with_snapshot("noise ~ same order as enc(a)".to_string()),
+    );
 
     let ct_sum = bfv::add(&ct_a, &ct_b);
     let (n_s, log_s, budget_s) = bfv::noise_estimate(&sk, &ct_sum);
@@ -171,7 +184,9 @@ pub fn trace_bfv_add(a: u64, b: u64) -> Vec<TraceStep> {
         )
         .with_snapshot(format!(
             "noise ≈ 2^{:.1}, budget ≈ {:.1} bits ({})",
-            log_s, budget_s, short_int(&n_s)
+            log_s,
+            budget_s,
+            short_int(&n_s)
         )),
     );
 
@@ -215,7 +230,10 @@ pub fn render_noise_chart(series: &[(String, f64)], max_budget: f64) -> String {
 /// Render a side-by-side anatomy diagram of a Paillier ciphertext.
 pub fn anatomy_paillier(pk: &paillier::PublicKey, ct: &paillier::Ciphertext) -> String {
     let mut out = String::new();
-    out.push_str(&format!("\n{}\n", "Paillier ciphertext anatomy".bold().underline()));
+    out.push_str(&format!(
+        "\n{}\n",
+        "Paillier ciphertext anatomy".bold().underline()
+    ));
     out.push_str(&format!(
         "\n  modulus n²       = {}\n  ciphertext c     = {}\n  ratio c/n²       ≈ {:.3}\n",
         short_uint(&pk.n_squared()),
@@ -243,7 +261,10 @@ fn ratio(num: &BigUint, den: &BigUint) -> f64 {
 pub fn anatomy_bfv(ct: &bfv::Ciphertext) -> String {
     let p = &ct.params;
     let mut out = String::new();
-    out.push_str(&format!("\n{}\n", "BFV ciphertext anatomy".bold().underline()));
+    out.push_str(&format!(
+        "\n{}\n",
+        "BFV ciphertext anatomy".bold().underline()
+    ));
     out.push_str(&format!(
         "\n  ring degree n  = {}\n  ciphertext mod = 2^{}  (q has {} bits)\n  plaintext mod  = {}\n  components     = {}\n",
         p.n,

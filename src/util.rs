@@ -183,14 +183,20 @@ mod tests {
     #[test]
     fn miller_rabin_known_primes() {
         for p in [2u32, 3, 5, 7, 11, 13, 17, 19, 23, 29, 7919, 65537] {
-            assert!(is_probable_prime(&BigUint::from(p), 20), "{p} should be prime");
+            assert!(
+                is_probable_prime(&BigUint::from(p), 20),
+                "{p} should be prime"
+            );
         }
     }
 
     #[test]
     fn miller_rabin_known_composites() {
         for c in [4u32, 9, 15, 21, 25, 1000, 65536] {
-            assert!(!is_probable_prime(&BigUint::from(c), 20), "{c} should be composite");
+            assert!(
+                !is_probable_prime(&BigUint::from(c), 20),
+                "{c} should be composite"
+            );
         }
     }
 

@@ -77,7 +77,13 @@ fn ckks_full_pipeline() {
     for i in 0..4 {
         let expected = (a[i] + b[i]) * c[i];
         let err = (back[i] - expected).abs();
-        assert!(err < 0.05, "slot {i}: got {} want {} (err {})", back[i], expected, err);
+        assert!(
+            err < 0.05,
+            "slot {i}: got {} want {} (err {})",
+            back[i],
+            expected,
+            err
+        );
     }
 }
 
@@ -103,9 +109,17 @@ fn ckks_mod_switch_preserves_message() {
     let ct = ckks::encrypt(&pk, &slots);
     let switched = ckks::mod_switch(&ct);
     assert_eq!(switched.level, ct.level - 1);
-    assert_eq!(switched.scale, ct.scale, "mod-switch must preserve message scale");
+    assert_eq!(
+        switched.scale, ct.scale,
+        "mod-switch must preserve message scale"
+    );
     let back = ckks::decrypt(&sk, &switched);
     for i in 0..4 {
-        assert!((back[i] - slots[i]).abs() < 0.05, "slot {i}: got {} want {}", back[i], slots[i]);
+        assert!(
+            (back[i] - slots[i]).abs() < 0.05,
+            "slot {i}: got {} want {}",
+            back[i],
+            slots[i]
+        );
     }
 }

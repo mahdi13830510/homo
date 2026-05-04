@@ -162,47 +162,83 @@ pub fn unpack_paillier_ct(env: &Envelope) -> Result<paillier::Ciphertext, String
 // --- BFV ---------------------------------------------------------------------
 
 /// Wrap a BFV public key into an envelope.
-pub fn pack_bfv_pk(pk: &bfv::PublicKey) -> Envelope { pack(Scheme::Bfv, Kind::PublicKey, pk) }
+pub fn pack_bfv_pk(pk: &bfv::PublicKey) -> Envelope {
+    pack(Scheme::Bfv, Kind::PublicKey, pk)
+}
 /// Unwrap a BFV public key from an envelope.
-pub fn unpack_bfv_pk(env: &Envelope) -> Result<bfv::PublicKey, String> { unpack(env, Kind::PublicKey) }
+pub fn unpack_bfv_pk(env: &Envelope) -> Result<bfv::PublicKey, String> {
+    unpack(env, Kind::PublicKey)
+}
 /// Wrap a BFV secret key into an envelope.
-pub fn pack_bfv_sk(sk: &bfv::SecretKey) -> Envelope { pack(Scheme::Bfv, Kind::SecretKey, sk) }
+pub fn pack_bfv_sk(sk: &bfv::SecretKey) -> Envelope {
+    pack(Scheme::Bfv, Kind::SecretKey, sk)
+}
 /// Unwrap a BFV secret key from an envelope.
-pub fn unpack_bfv_sk(env: &Envelope) -> Result<bfv::SecretKey, String> { unpack(env, Kind::SecretKey) }
+pub fn unpack_bfv_sk(env: &Envelope) -> Result<bfv::SecretKey, String> {
+    unpack(env, Kind::SecretKey)
+}
 /// Wrap a BFV ciphertext into an envelope.
-pub fn pack_bfv_ct(ct: &bfv::Ciphertext) -> Envelope { pack(Scheme::Bfv, Kind::Ciphertext, ct) }
+pub fn pack_bfv_ct(ct: &bfv::Ciphertext) -> Envelope {
+    pack(Scheme::Bfv, Kind::Ciphertext, ct)
+}
 /// Unwrap a BFV ciphertext from an envelope.
-pub fn unpack_bfv_ct(env: &Envelope) -> Result<bfv::Ciphertext, String> { unpack(env, Kind::Ciphertext) }
+pub fn unpack_bfv_ct(env: &Envelope) -> Result<bfv::Ciphertext, String> {
+    unpack(env, Kind::Ciphertext)
+}
 
 // --- BGN ---------------------------------------------------------------------
 
 /// Wrap a BGN public key into an envelope.
-pub fn pack_bgn_pk(pk: &bgn::PublicKey) -> Envelope { pack(Scheme::Bgn, Kind::PublicKey, pk) }
+pub fn pack_bgn_pk(pk: &bgn::PublicKey) -> Envelope {
+    pack(Scheme::Bgn, Kind::PublicKey, pk)
+}
 /// Unwrap a BGN public key from an envelope.
-pub fn unpack_bgn_pk(env: &Envelope) -> Result<bgn::PublicKey, String> { unpack(env, Kind::PublicKey) }
+pub fn unpack_bgn_pk(env: &Envelope) -> Result<bgn::PublicKey, String> {
+    unpack(env, Kind::PublicKey)
+}
 /// Wrap a BGN secret key into an envelope.
-pub fn pack_bgn_sk(sk: &bgn::SecretKey) -> Envelope { pack(Scheme::Bgn, Kind::SecretKey, sk) }
+pub fn pack_bgn_sk(sk: &bgn::SecretKey) -> Envelope {
+    pack(Scheme::Bgn, Kind::SecretKey, sk)
+}
 /// Unwrap a BGN secret key from an envelope.
-pub fn unpack_bgn_sk(env: &Envelope) -> Result<bgn::SecretKey, String> { unpack(env, Kind::SecretKey) }
+pub fn unpack_bgn_sk(env: &Envelope) -> Result<bgn::SecretKey, String> {
+    unpack(env, Kind::SecretKey)
+}
 /// Wrap a BGN level-1 ciphertext into an envelope.
-pub fn pack_bgn_ct(ct: &bgn::CiphertextL1) -> Envelope { pack(Scheme::Bgn, Kind::Ciphertext, ct) }
+pub fn pack_bgn_ct(ct: &bgn::CiphertextL1) -> Envelope {
+    pack(Scheme::Bgn, Kind::Ciphertext, ct)
+}
 /// Unwrap a BGN level-1 ciphertext from an envelope.
-pub fn unpack_bgn_ct(env: &Envelope) -> Result<bgn::CiphertextL1, String> { unpack(env, Kind::Ciphertext) }
+pub fn unpack_bgn_ct(env: &Envelope) -> Result<bgn::CiphertextL1, String> {
+    unpack(env, Kind::Ciphertext)
+}
 
 // --- CKKS --------------------------------------------------------------------
 
 /// Wrap a CKKS public key into an envelope.
-pub fn pack_ckks_pk(pk: &ckks::PublicKey) -> Envelope { pack(Scheme::Ckks, Kind::PublicKey, pk) }
+pub fn pack_ckks_pk(pk: &ckks::PublicKey) -> Envelope {
+    pack(Scheme::Ckks, Kind::PublicKey, pk)
+}
 /// Unwrap a CKKS public key from an envelope.
-pub fn unpack_ckks_pk(env: &Envelope) -> Result<ckks::PublicKey, String> { unpack(env, Kind::PublicKey) }
+pub fn unpack_ckks_pk(env: &Envelope) -> Result<ckks::PublicKey, String> {
+    unpack(env, Kind::PublicKey)
+}
 /// Wrap a CKKS secret key into an envelope.
-pub fn pack_ckks_sk(sk: &ckks::SecretKey) -> Envelope { pack(Scheme::Ckks, Kind::SecretKey, sk) }
+pub fn pack_ckks_sk(sk: &ckks::SecretKey) -> Envelope {
+    pack(Scheme::Ckks, Kind::SecretKey, sk)
+}
 /// Unwrap a CKKS secret key from an envelope.
-pub fn unpack_ckks_sk(env: &Envelope) -> Result<ckks::SecretKey, String> { unpack(env, Kind::SecretKey) }
+pub fn unpack_ckks_sk(env: &Envelope) -> Result<ckks::SecretKey, String> {
+    unpack(env, Kind::SecretKey)
+}
 /// Wrap a CKKS ciphertext into an envelope.
-pub fn pack_ckks_ct(ct: &ckks::Ciphertext) -> Envelope { pack(Scheme::Ckks, Kind::Ciphertext, ct) }
+pub fn pack_ckks_ct(ct: &ckks::Ciphertext) -> Envelope {
+    pack(Scheme::Ckks, Kind::Ciphertext, ct)
+}
 /// Unwrap a CKKS ciphertext from an envelope.
-pub fn unpack_ckks_ct(env: &Envelope) -> Result<ckks::Ciphertext, String> { unpack(env, Kind::Ciphertext) }
+pub fn unpack_ckks_ct(env: &Envelope) -> Result<ckks::Ciphertext, String> {
+    unpack(env, Kind::Ciphertext)
+}
 
 #[cfg(test)]
 mod tests {

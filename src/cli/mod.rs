@@ -221,7 +221,12 @@ fn parse_kv(s: &str) -> Result<(String, i64), String> {
 pub fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Cmd::Schemes => cmd_schemes(),
-        Cmd::Keygen { scheme, bits, out_pub, out_sec } => cmd_keygen(scheme, bits, &out_pub, &out_sec),
+        Cmd::Keygen {
+            scheme,
+            bits,
+            out_pub,
+            out_sec,
+        } => cmd_keygen(scheme, bits, &out_pub, &out_sec),
         Cmd::Encrypt { key, message, out } => cmd_encrypt(&key, &message, out.as_deref()),
         Cmd::Decrypt { key, input } => cmd_decrypt(&key, &input),
         Cmd::Eval { key, op, a, b, out } => cmd_eval(&key, &op, &a, &b, &out),
@@ -229,11 +234,24 @@ pub fn run(cli: Cli) -> Result<(), String> {
         Cmd::Trace { op, a, b } => cmd_trace(&op, a, b),
         Cmd::Noise { adds, with_mul } => cmd_noise(adds, with_mul),
         Cmd::Attack { what, key } => cmd_attack(&what, &key),
-        Cmd::Bench { scheme, iters, bits } => cmd_bench(&scheme, iters, bits),
+        Cmd::Bench {
+            scheme,
+            iters,
+            bits,
+        } => cmd_bench(&scheme, iters, bits),
         Cmd::Lab => playground::repl().map_err(|e| e.to_string()),
         Cmd::Circuit { path, input } => cmd_circuit(&path, input),
-        Cmd::Plot { poly, from, to, points } => cmd_plot(&poly, from, to, points),
-        Cmd::Ml { weights, features, bias } => cmd_ml(&weights, &features, bias),
+        Cmd::Plot {
+            poly,
+            from,
+            to,
+            points,
+        } => cmd_plot(&poly, from, to, points),
+        Cmd::Ml {
+            weights,
+            features,
+            bias,
+        } => cmd_ml(&weights, &features, bias),
         Cmd::Compare { a, b } => cmd_compare(a, b),
         Cmd::Party { values, scheme } => cmd_party(&values, scheme),
     }
@@ -259,7 +277,11 @@ fn cmd_keygen(scheme: Scheme, bits: u64, out_pub: &str, out_sec: &str) -> Result
             (wire::pack_paillier_pk(&pk), wire::pack_paillier_sk(&sk))
         }
         Scheme::Bfv => {
-            let params = if bits >= 1024 { bfv::Params::toy() } else { bfv::Params::toy() };
+            let params = if bits >= 1024 {
+                bfv::Params::toy()
+            } else {
+                bfv::Params::toy()
+            };
             let (pk, sk) = bfv::keygen(&params);
             (wire::pack_bfv_pk(&pk), wire::pack_bfv_sk(&sk))
         }
@@ -268,7 +290,11 @@ fn cmd_keygen(scheme: Scheme, bits: u64, out_pub: &str, out_sec: &str) -> Result
             (wire::pack_bgn_pk(&pk), wire::pack_bgn_sk(&sk))
         }
         Scheme::Ckks => {
-            let params = if bits >= 1024 { ckks::Params::medium() } else { ckks::Params::toy() };
+            let params = if bits >= 1024 {
+                ckks::Params::medium()
+            } else {
+                ckks::Params::toy()
+            };
             let (pk, sk) = ckks::keygen(&params);
             (wire::pack_ckks_pk(&pk), wire::pack_ckks_sk(&sk))
         }
@@ -278,8 +304,18 @@ fn cmd_keygen(scheme: Scheme, bits: u64, out_pub: &str, out_sec: &str) -> Result
     wire::write_file(out_pub, &pk_env.to_pem()).map_err(|e| e.to_string())?;
     wire::write_file(out_sec, &sk_env.to_pem()).map_err(|e| e.to_string())?;
 
-    println!("{} {}  → {}", "✓".green().bold(), "public  key".bold(), out_pub);
-    println!("{} {}  → {}", "✓".green().bold(), "secret  key".bold(), out_sec);
+    println!(
+        "{} {}  → {}",
+        "✓".green().bold(),
+        "public  key".bold(),
+        out_pub
+    );
+    println!(
+        "{} {}  → {}",
+        "✓".green().bold(),
+        "secret  key".bold(),
+        out_sec
+    );
     println!("  fingerprint: {}", pk_env.fingerprint.yellow());
     Ok(())
 }
@@ -310,7 +346,9 @@ fn cmd_encrypt(key_path: &str, message: &str, out: Option<&str>) -> Result<(), S
         }
         Scheme::Bgn => {
             let pk = wire::unpack_bgn_pk(&env)?;
-            let m: u64 = message.parse().map_err(|e: std::num::ParseIntError| e.to_string())?;
+            let m: u64 = message
+                .parse()
+                .map_err(|e: std::num::ParseIntError| e.to_string())?;
             let ct = bgn::encrypt(&pk, m);
             wire::pack_bgn_ct(&ct)
         }
@@ -329,7 +367,12 @@ fn cmd_encrypt(key_path: &str, message: &str, out: Option<&str>) -> Result<(), S
     match out {
         Some(p) => {
             wire::write_file(p, &pem).map_err(|e| e.to_string())?;
-            println!("{} ciphertext → {}  ({})", "✓".green(), p, ct_env.fingerprint.yellow());
+            println!(
+                "{} ciphertext → {}  ({})",
+                "✓".green(),
+                p,
+                ct_env.fingerprint.yellow()
+            );
         }
         None => print!("{pem}"),
     }
@@ -356,9 +399,20 @@ fn cmd_decrypt(key_path: &str, ct_path: &str) -> Result<(), String> {
             let ct = wire::unpack_bfv_ct(&ct_env)?;
             let plain = bfv::decrypt(&sk, &ct);
             // Strip trailing zeros for readability.
-            let last = plain.iter().rposition(|x| *x != 0).map(|i| i + 1).unwrap_or(0);
+            let last = plain
+                .iter()
+                .rposition(|x| *x != 0)
+                .map(|i| i + 1)
+                .unwrap_or(0);
             let trimmed = &plain[..last.max(1)];
-            println!("{}", trimmed.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(","));
+            println!(
+                "{}",
+                trimmed
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
         }
         Scheme::Bgn => {
             let sk = wire::unpack_bgn_sk(&key_env)?;
@@ -378,7 +432,11 @@ fn cmd_decrypt(key_path: &str, ct_path: &str) -> Result<(), String> {
                 .iter()
                 .take(half)
                 .map(|v| {
-                    if v.abs() < 1e-6 { "0".to_string() } else { format!("{:.4}", v) }
+                    if v.abs() < 1e-6 {
+                        "0".to_string()
+                    } else {
+                        format!("{:.4}", v)
+                    }
                 })
                 .collect();
             println!("{}", formatted.join(","));
@@ -387,7 +445,13 @@ fn cmd_decrypt(key_path: &str, ct_path: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn cmd_eval(key_path: &str, op: &str, a_path: &str, b_path: &str, out_path: &str) -> Result<(), String> {
+fn cmd_eval(
+    key_path: &str,
+    op: &str,
+    a_path: &str,
+    b_path: &str,
+    out_path: &str,
+) -> Result<(), String> {
     let key_env = read_envelope(key_path)?;
     let a_env = read_envelope(a_path)?;
 
@@ -409,7 +473,11 @@ fn cmd_eval(key_path: &str, op: &str, a_path: &str, b_path: &str, out_path: &str
                     let k = b_path.parse::<BigUint>().map_err(|e| e.to_string())?;
                     paillier::add_plain(&pk, &a, &k)
                 }
-                other => return Err(format!("paillier: unsupported op '{other}' (try add/smul/sadd)")),
+                other => {
+                    return Err(format!(
+                        "paillier: unsupported op '{other}' (try add/smul/sadd)"
+                    ))
+                }
             };
             let env = wire::pack_paillier_ct(&result);
             wire::write_file(out_path, &env.to_pem()).map_err(|e| e.to_string())?;
@@ -434,7 +502,11 @@ fn cmd_eval(key_path: &str, op: &str, a_path: &str, b_path: &str, out_path: &str
             let b = wire::unpack_bgn_ct(&b_env)?;
             let result = match op {
                 "add" => bgn::add_l1(&pk, &a, &b),
-                other => return Err(format!("bgn: unsupported op '{other}' (only add at level 1)")),
+                other => {
+                    return Err(format!(
+                        "bgn: unsupported op '{other}' (only add at level 1)"
+                    ))
+                }
             };
             let env = wire::pack_bgn_ct(&result);
             wire::write_file(out_path, &env.to_pem()).map_err(|e| e.to_string())?;
@@ -466,7 +538,11 @@ fn cmd_eval(key_path: &str, op: &str, a_path: &str, b_path: &str, out_path: &str
                         .map_err(|e| e.to_string())?;
                     ckks::add_plain(&a, &slots)
                 }
-                other => return Err(format!("ckks: unsupported op '{other}' (try add/mul/rescale/padd)")),
+                other => {
+                    return Err(format!(
+                        "ckks: unsupported op '{other}' (try add/mul/rescale/padd)"
+                    ))
+                }
             };
             let env = wire::pack_ckks_ct(&result);
             wire::write_file(out_path, &env.to_pem()).map_err(|e| e.to_string())?;
@@ -507,7 +583,8 @@ fn cmd_inspect(input: &str, secret: Option<&str>) -> Result<(), String> {
                 let (n, log2_n, budget) = bfv::noise_estimate(&sk, &ct);
                 println!(
                     "  noise        ‖·‖∞ ≈ {} (≈ 2^{:.1})",
-                    viz::short_int(&n), log2_n
+                    viz::short_int(&n),
+                    log2_n
                 );
                 println!("  budget       ≈ {:.1} bits", budget);
             }
@@ -604,11 +681,10 @@ fn cmd_attack(what: &str, key_path: &str) -> Result<(), String> {
     pb.set_message("trial division…");
 
     let result = match what {
-        "factor" => attacks::factor_trial_division(&pk.n, 2_000_000)
-            .or_else(|| {
-                pb.set_message("Pollard's rho…");
-                attacks::factor_pollard_rho(&pk.n, 200_000)
-            }),
+        "factor" => attacks::factor_trial_division(&pk.n, 2_000_000).or_else(|| {
+            pb.set_message("Pollard's rho…");
+            attacks::factor_pollard_rho(&pk.n, 200_000)
+        }),
         other => return Err(format!("unknown attack: {other}")),
     };
     pb.finish_and_clear();
@@ -619,15 +695,19 @@ fn cmd_attack(what: &str, key_path: &str) -> Result<(), String> {
             println!("  p = {}", viz::short_uint(&f.p));
             println!("  q = {}", viz::short_uint(&f.q));
             let sk = attacks::recover_paillier_sk(&pk, &f);
+            println!("  λ bits = {}, μ bits = {}", sk.lambda.bits(), sk.mu.bits());
             println!(
-                "  λ bits = {}, μ bits = {}",
-                sk.lambda.bits(),
-                sk.mu.bits()
+                "\n{}\n",
+                "lesson: this is why real Paillier needs ≥ 2048-bit moduli."
+                    .italic()
+                    .yellow()
             );
-            println!("\n{}\n", "lesson: this is why real Paillier needs ≥ 2048-bit moduli.".italic().yellow());
         }
         None => {
-            println!("{} could not factor in the budget — your key looks healthy.", "✗".red());
+            println!(
+                "{} could not factor in the budget — your key looks healthy.",
+                "✗".red()
+            );
         }
     }
     Ok(())
@@ -660,7 +740,11 @@ fn cmd_circuit(path: &str, inputs: Vec<(String, i64)>) -> Result<(), String> {
     let (result, log) = playground::run_circuit(&src, &map)?;
     println!("\n{}", "Circuit trace".bold().underline());
     print!("{log}");
-    println!("\n{} {}\n", "result:".bold(), result.to_string().green().bold());
+    println!(
+        "\n{} {}\n",
+        "result:".bold(),
+        result.to_string().green().bold()
+    );
     Ok(())
 }
 
@@ -694,7 +778,9 @@ fn cmd_plot(poly: &str, from: f64, to: f64, points: usize) -> Result<(), String>
     let params = ckks::Params::toy();
     let max_pts = params.slot_count();
     if points == 0 || points > max_pts {
-        return Err(format!("`--points` must be between 1 and {max_pts} for the toy params"));
+        return Err(format!(
+            "`--points` must be between 1 and {max_pts} for the toy params"
+        ));
     }
 
     // Sample x values uniformly across the range.
@@ -754,7 +840,10 @@ fn cmd_plot(poly: &str, from: f64, to: f64, points: usize) -> Result<(), String>
     // Cleartext reference
     let cleartext: Vec<f64> = xs.iter().map(|&x| c0 + c1 * x + c2 * x * x).collect();
 
-    println!("\n{}", "Homomorphic polynomial evaluation".bold().underline());
+    println!(
+        "\n{}",
+        "Homomorphic polynomial evaluation".bold().underline()
+    );
     let pretty = match (c1.abs() > 1e-12, c2.abs() > 1e-12) {
         (false, false) => format!("{c0}"),
         (true, false) => format!("{c0} + {c1}·x"),
@@ -913,7 +1002,11 @@ fn cmd_ml(weights: &str, features: &str, bias: f64) -> Result<(), String> {
     println!(
         "  error:             {:>.2e}  {}",
         err,
-        if err < 0.01 { "✓".green() } else { "⚠".yellow() }
+        if err < 0.01 {
+            "✓".green()
+        } else {
+            "⚠".yellow()
+        }
     );
     println!();
     Ok(())
@@ -924,12 +1017,22 @@ fn cmd_ml(weights: &str, features: &str, bias: f64) -> Result<(), String> {
 fn cmd_compare(a: u64, b: u64) -> Result<(), String> {
     use std::time::Instant;
 
-    println!("\n{}", "Cross-scheme comparison: Enc(a) + Enc(b)".bold().underline());
+    println!(
+        "\n{}",
+        "Cross-scheme comparison: Enc(a) + Enc(b)"
+            .bold()
+            .underline()
+    );
     println!("  inputs:  a = {a},  b = {b}\n");
 
     println!(
         "  {:<10}  {:>11}  {:>10}  {:>10}  {:>11}  {:>14}",
-        "scheme".bold(), "keygen".bold(), "enc".bold(), "add".bold(), "dec".bold(), "ct bytes".bold()
+        "scheme".bold(),
+        "keygen".bold(),
+        "enc".bold(),
+        "add".bold(),
+        "dec".bold(),
+        "ct bytes".bold()
     );
     println!("  {}", "─".repeat(74).dimmed());
 
@@ -954,7 +1057,10 @@ fn cmd_compare(a: u64, b: u64) -> Result<(), String> {
         println!(
             "  {:<10}  {:>11}  {:>10}  {:>10}  {:>11}  {:>14}  → result = {m}",
             "paillier".green(),
-            humanise(kg), humanise(enc), humanise(add_t), humanise(dec),
+            humanise(kg),
+            humanise(enc),
+            humanise(add_t),
+            humanise(dec),
             format!("{bytes} B")
         );
     }
@@ -978,7 +1084,10 @@ fn cmd_compare(a: u64, b: u64) -> Result<(), String> {
         println!(
             "  {:<10}  {:>11}  {:>10}  {:>10}  {:>11}  {:>14}  → result = {}",
             "bfv".green(),
-            humanise(kg), humanise(enc), humanise(add_t), humanise(dec),
+            humanise(kg),
+            humanise(enc),
+            humanise(add_t),
+            humanise(dec),
             format!("{bytes} B"),
             plain[0]
         );
@@ -1002,7 +1111,10 @@ fn cmd_compare(a: u64, b: u64) -> Result<(), String> {
         println!(
             "  {:<10}  {:>11}  {:>10}  {:>10}  {:>11}  {:>14}  → result = {m}",
             "bgn".green(),
-            humanise(kg), humanise(enc), humanise(add_t), humanise(dec),
+            humanise(kg),
+            humanise(enc),
+            humanise(add_t),
+            humanise(dec),
             format!("{bytes} B")
         );
     }
@@ -1026,7 +1138,10 @@ fn cmd_compare(a: u64, b: u64) -> Result<(), String> {
         println!(
             "  {:<10}  {:>11}  {:>10}  {:>10}  {:>11}  {:>14}  → result ≈ {:.4}",
             "ckks".green(),
-            humanise(kg), humanise(enc), humanise(add_t), humanise(dec),
+            humanise(kg),
+            humanise(enc),
+            humanise(add_t),
+            humanise(dec),
             format!("{bytes} B"),
             plain[0]
         );
@@ -1076,8 +1191,14 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
             println!("  {} Alice generates Paillier key pair", "→".cyan());
             let (pk, sk) = paillier::keygen(512);
             let pem_pub = wire::pack_paillier_pk(&pk).to_pem();
-            println!("    public key fingerprint: {}", wire::pack_paillier_pk(&pk).fingerprint.yellow());
-            println!("    public key: {} bytes (broadcast to all participants)", pem_pub.len());
+            println!(
+                "    public key fingerprint: {}",
+                wire::pack_paillier_pk(&pk).fingerprint.yellow()
+            );
+            println!(
+                "    public key: {} bytes (broadcast to all participants)",
+                pem_pub.len()
+            );
             println!();
 
             // Paillier needs integers — round and warn if any values aren't.
@@ -1106,10 +1227,18 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
                 });
             }
             let total_ct = acc.unwrap();
-            println!("\n  {} aggregator computed encrypted total without seeing any input", "✓".green().bold());
+            println!(
+                "\n  {} aggregator computed encrypted total without seeing any input",
+                "✓".green().bold()
+            );
             let total = paillier::decrypt(&sk, &total_ct);
             let expected: f64 = vs.iter().sum();
-            println!("  {} Alice decrypts: {}  (expected {:.0})", "✓".green().bold(), total, expected);
+            println!(
+                "  {} Alice decrypts: {}  (expected {:.0})",
+                "✓".green().bold(),
+                total,
+                expected
+            );
         }
         Scheme::Bgn => {
             println!("  {} Alice generates BGN key pair", "→".cyan());
@@ -1118,7 +1247,11 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
             let mut acc: Option<bgn::CiphertextL1> = None;
             for (i, v) in vs.iter().enumerate() {
                 let ct = bgn::encrypt(&pk, v.round() as u64);
-                println!("  {} participant #{}: encrypted private value", "→".dimmed(), i + 1);
+                println!(
+                    "  {} participant #{}: encrypted private value",
+                    "→".dimmed(),
+                    i + 1
+                );
                 acc = Some(match acc {
                     None => ct,
                     Some(a) => bgn::add_l1(&pk, &a, &ct),
@@ -1127,7 +1260,12 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
             let total_ct = acc.unwrap();
             let total = bgn::decrypt_l1(&sk, &total_ct).ok_or("decryption failed")?;
             let expected: f64 = vs.iter().sum();
-            println!("\n  {} Alice decrypts: {}  (expected {:.0})", "✓".green().bold(), total, expected);
+            println!(
+                "\n  {} Alice decrypts: {}  (expected {:.0})",
+                "✓".green().bold(),
+                total,
+                expected
+            );
         }
         Scheme::Ckks => {
             println!("  {} Alice generates CKKS key pair", "→".cyan());
@@ -1137,7 +1275,11 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
             let mut acc: Option<ckks::Ciphertext> = None;
             for (i, v) in vs.iter().enumerate() {
                 let ct = ckks::encrypt(&pk, &[*v]);
-                println!("  {} participant #{}: encrypted private value", "→".dimmed(), i + 1);
+                println!(
+                    "  {} participant #{}: encrypted private value",
+                    "→".dimmed(),
+                    i + 1
+                );
                 acc = Some(match acc {
                     None => ct,
                     Some(a) => ckks::add(&a, &ct),
@@ -1146,7 +1288,12 @@ fn cmd_party(values: &str, scheme: Scheme) -> Result<(), String> {
             let total_ct = acc.unwrap();
             let plain = ckks::decrypt(&sk, &total_ct);
             let expected: f64 = vs.iter().sum();
-            println!("\n  {} Alice decrypts: {:.4}  (expected {:.4})", "✓".green().bold(), plain[0], expected);
+            println!(
+                "\n  {} Alice decrypts: {:.4}  (expected {:.4})",
+                "✓".green().bold(),
+                plain[0],
+                expected
+            );
         }
         Scheme::Bfv => {
             return Err("BFV-lite party demo not implemented (use paillier, bgn, or ckks)".into());

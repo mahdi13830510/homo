@@ -78,7 +78,12 @@ impl Params {
         // verified primality on once. For a real library we'd generate
         // these via a parameter-selection routine.
         let q = (BigInt::from(1u64) << 120) - BigInt::from(243u32);
-        Self { n: 2048, q, t: BigInt::from(1024u32), eta: 6 }
+        Self {
+            n: 2048,
+            q,
+            t: BigInt::from(1024u32),
+            eta: 6,
+        }
     }
 
     /// `Δ = ⌊q / t⌋`, the scaling factor that lifts plaintexts into the
@@ -100,7 +105,9 @@ pub struct Poly {
 impl Poly {
     /// All-zero polynomial.
     pub fn zero(n: usize) -> Self {
-        Self { coeffs: vec![BigInt::zero(); n] }
+        Self {
+            coeffs: vec![BigInt::zero(); n],
+        }
     }
 
     /// Sample a uniformly random polynomial in `R_q`.
@@ -157,7 +164,11 @@ impl Poly {
     /// The infinity norm — i.e. the largest absolute coefficient. This is
     /// the standard "noise size" measure for BFV/BGV schemes.
     pub fn inf_norm(&self) -> BigInt {
-        self.coeffs.iter().map(|c| c.abs()).max().unwrap_or_else(BigInt::zero)
+        self.coeffs
+            .iter()
+            .map(|c| c.abs())
+            .max()
+            .unwrap_or_else(BigInt::zero)
     }
 }
 
@@ -279,7 +290,17 @@ pub fn keygen(params: &Params) -> (PublicKey, SecretKey) {
     let a_s = poly_mul(&a, &s, &params.q);
     let a_s_plus_e = poly_add(&a_s, &e, &params.q);
     let b = poly_neg(&a_s_plus_e, &params.q);
-    (PublicKey { b, a, params: params.clone() }, SecretKey { s, params: params.clone() })
+    (
+        PublicKey {
+            b,
+            a,
+            params: params.clone(),
+        },
+        SecretKey {
+            s,
+            params: params.clone(),
+        },
+    )
 }
 
 /// Negate every coefficient of `p` in `R_q`.
@@ -313,7 +334,10 @@ pub fn encrypt(pk: &PublicKey, plain: &[u64]) -> Ciphertext {
     // c1 = a·u + e2
     let c1 = poly_add(&au, &e2, &params.q);
 
-    Ciphertext { parts: vec![c0, c1], params: params.clone() }
+    Ciphertext {
+        parts: vec![c0, c1],
+        params: params.clone(),
+    }
 }
 
 /// Decrypt a ciphertext back to plaintext coefficients in `[0, t)`.
@@ -383,7 +407,10 @@ pub fn add(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
             (None, None) => unreachable!(),
         }
     }
-    Ciphertext { parts, params: a.params.clone() }
+    Ciphertext {
+        parts,
+        params: a.params.clone(),
+    }
 }
 
 /// Homomorphic multiplication of two size-2 ciphertexts. Produces a size-3
@@ -400,8 +427,16 @@ pub fn add(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
 /// Without a relinearisation key we can't bring it back down to size 2,
 /// so a second homomorphic multiplication is not supported.
 pub fn mul(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
-    assert_eq!(a.parts.len(), 2, "BFV-lite only multiplies fresh ciphertexts");
-    assert_eq!(b.parts.len(), 2, "BFV-lite only multiplies fresh ciphertexts");
+    assert_eq!(
+        a.parts.len(),
+        2,
+        "BFV-lite only multiplies fresh ciphertexts"
+    );
+    assert_eq!(
+        b.parts.len(),
+        2,
+        "BFV-lite only multiplies fresh ciphertexts"
+    );
     let params = &a.params;
     let q = &params.q;
     let t = &params.t;
@@ -419,7 +454,10 @@ pub fn mul(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
     let d1 = rescale(&d1, t, q);
     let d2 = rescale(&d2, t, q);
 
-    Ciphertext { parts: vec![d0, d1, d2], params: params.clone() }
+    Ciphertext {
+        parts: vec![d0, d1, d2],
+        params: params.clone(),
+    }
 }
 
 /// Schoolbook multiplication *without* any modular reduction. Output is the
@@ -509,7 +547,12 @@ mod tests {
     use super::*;
 
     fn small_params() -> Params {
-        Params { n: 64, q: BigInt::from(1099511627791u64), t: BigInt::from(16u32), eta: 4 }
+        Params {
+            n: 64,
+            q: BigInt::from(1099511627791u64),
+            t: BigInt::from(16u32),
+            eta: 4,
+        }
     }
 
     #[test]

@@ -65,14 +65,26 @@ impl Params {
     pub fn toy() -> Self {
         let q0 = BigInt::from(1u64 << 45) - BigInt::from(229u32); // a 45-bit prime-ish
         let delta = BigInt::from(1u64 << 30);
-        Self { n: 8, q0, delta, levels: 3, eta: 6 }
+        Self {
+            n: 8,
+            q0,
+            delta,
+            levels: 3,
+            eta: 6,
+        }
     }
 
     /// A medium parameter set: `n=64`, 4 levels, more headroom.
     pub fn medium() -> Self {
         let q0 = BigInt::from(1u64 << 50) - BigInt::from(569u32);
         let delta = BigInt::from(1u64 << 35);
-        Self { n: 64, q0, delta, levels: 4, eta: 6 }
+        Self {
+            n: 64,
+            q0,
+            delta,
+            levels: 4,
+            eta: 6,
+        }
     }
 
     /// The starting (top-of-modulus-chain) modulus: `q0 · Δ^levels`.
@@ -109,7 +121,9 @@ pub struct Poly {
 impl Poly {
     /// All-zero polynomial.
     pub fn zero(n: usize) -> Self {
-        Self { coeffs: vec![BigInt::zero(); n] }
+        Self {
+            coeffs: vec![BigInt::zero(); n],
+        }
     }
 
     /// Sample a uniform random polynomial mod `q`.
@@ -150,7 +164,11 @@ impl Poly {
 
     /// Largest absolute coefficient.
     pub fn inf_norm(&self) -> BigInt {
-        self.coeffs.iter().map(|c| c.abs()).max().unwrap_or_else(BigInt::zero)
+        self.coeffs
+            .iter()
+            .map(|c| c.abs())
+            .max()
+            .unwrap_or_else(BigInt::zero)
     }
 }
 
@@ -241,13 +259,28 @@ struct C {
 }
 
 impl C {
-    fn new(re: f64, im: f64) -> Self { Self { re, im } }
-    fn add(self, o: C) -> C { C::new(self.re + o.re, self.im + o.im) }
+    fn new(re: f64, im: f64) -> Self {
+        Self { re, im }
+    }
+    fn add(self, o: C) -> C {
+        C::new(self.re + o.re, self.im + o.im)
+    }
     #[allow(dead_code)]
-    fn sub(self, o: C) -> C { C::new(self.re - o.re, self.im - o.im) }
-    fn mul(self, o: C) -> C { C::new(self.re * o.re - self.im * o.im, self.re * o.im + self.im * o.re) }
-    fn conj(self) -> C { C::new(self.re, -self.im) }
-    fn neg(self) -> C { C::new(-self.re, -self.im) }
+    fn sub(self, o: C) -> C {
+        C::new(self.re - o.re, self.im - o.im)
+    }
+    fn mul(self, o: C) -> C {
+        C::new(
+            self.re * o.re - self.im * o.im,
+            self.re * o.im + self.im * o.re,
+        )
+    }
+    fn conj(self) -> C {
+        C::new(self.re, -self.im)
+    }
+    fn neg(self) -> C {
+        C::new(-self.re, -self.im)
+    }
     fn inv(self) -> C {
         let d = self.re * self.re + self.im * self.im;
         C::new(self.re / d, -self.im / d)
@@ -441,7 +474,9 @@ pub struct Ciphertext {
 
 impl Ciphertext {
     /// The current ciphertext modulus.
-    pub fn q(&self) -> BigInt { self.params.q_at(self.level) }
+    pub fn q(&self) -> BigInt {
+        self.params.q_at(self.level)
+    }
 }
 
 /// Generate a CKKS-lite key pair.
@@ -453,7 +488,17 @@ pub fn keygen(params: &Params) -> (PublicKey, SecretKey) {
     let e = Poly::rand_noise(&mut rng, params.n, params.eta);
     let a_s = poly_mul(&a, &s, &q);
     let b = poly_neg(&poly_add(&a_s, &e, &q), &q);
-    (PublicKey { b, a, params: params.clone() }, SecretKey { s, params: params.clone() })
+    (
+        PublicKey {
+            b,
+            a,
+            params: params.clone(),
+        },
+        SecretKey {
+            s,
+            params: params.clone(),
+        },
+    )
 }
 
 /// Encrypt an already-encoded plaintext polynomial.
@@ -473,7 +518,12 @@ pub fn encrypt_poly(pk: &PublicKey, m: &Poly) -> Ciphertext {
     let c0 = poly_add(&poly_add(&bu, &e1, &q), m, &q);
     let c1 = poly_add(&au, &e2, &q);
 
-    Ciphertext { parts: vec![c0, c1], level: params.levels, scale: params.delta.clone(), params: params.clone() }
+    Ciphertext {
+        parts: vec![c0, c1],
+        level: params.levels,
+        scale: params.delta.clone(),
+        params: params.clone(),
+    }
 }
 
 /// Convenience: encode a real vector and encrypt in one step.
@@ -507,8 +557,14 @@ pub fn decrypt(sk: &SecretKey, ct: &Ciphertext) -> Vec<f64> {
 
 /// Homomorphic addition: component-wise, requires same level.
 pub fn add(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
-    assert_eq!(a.level, b.level, "ciphertexts must be at the same level to add");
-    assert_eq!(a.scale, b.scale, "ciphertexts must have the same scale to add");
+    assert_eq!(
+        a.level, b.level,
+        "ciphertexts must be at the same level to add"
+    );
+    assert_eq!(
+        a.scale, b.scale,
+        "ciphertexts must have the same scale to add"
+    );
     let q = a.q();
     let n = a.parts.len().max(b.parts.len());
     let mut parts = Vec::with_capacity(n);
@@ -519,7 +575,12 @@ pub fn add(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
             (None, None) => unreachable!(),
         }
     }
-    Ciphertext { parts, level: a.level, scale: a.scale.clone(), params: a.params.clone() }
+    Ciphertext {
+        parts,
+        level: a.level,
+        scale: a.scale.clone(),
+        params: a.params.clone(),
+    }
 }
 
 /// Homomorphic addition of a *plaintext* slot vector to a ciphertext.
@@ -535,7 +596,12 @@ pub fn add_plain(ct: &Ciphertext, slots: &[f64]) -> Ciphertext {
     let q = ct.q();
     let mut parts = ct.parts.clone();
     parts[0] = poly_add(&parts[0], &m, &q);
-    Ciphertext { parts, level: ct.level, scale: ct.scale.clone(), params: ct.params.clone() }
+    Ciphertext {
+        parts,
+        level: ct.level,
+        scale: ct.scale.clone(),
+        params: ct.params.clone(),
+    }
 }
 
 /// Homomorphic multiplication of a ciphertext by a *plaintext* slot vector.
@@ -550,15 +616,31 @@ pub fn mul_plain(ct: &Ciphertext, slots: &[f64]) -> Ciphertext {
     let q = ct.q();
     let new_parts: Vec<Poly> = ct.parts.iter().map(|p| poly_mul(p, &m, &q)).collect();
     let new_scale = &ct.scale * &ct.params.delta;
-    Ciphertext { parts: new_parts, level: ct.level, scale: new_scale, params: ct.params.clone() }
+    Ciphertext {
+        parts: new_parts,
+        level: ct.level,
+        scale: new_scale,
+        params: ct.params.clone(),
+    }
 }
 
 /// Homomorphic multiplication: tensor product producing a 3-component ct.
 /// The result's scale doubles; you'll typically `rescale` afterwards.
 pub fn mul(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
-    assert_eq!(a.level, b.level, "ciphertexts must be at the same level to multiply");
-    assert_eq!(a.parts.len(), 2, "CKKS-lite multiplies fresh (size-2) ciphertexts");
-    assert_eq!(b.parts.len(), 2, "CKKS-lite multiplies fresh (size-2) ciphertexts");
+    assert_eq!(
+        a.level, b.level,
+        "ciphertexts must be at the same level to multiply"
+    );
+    assert_eq!(
+        a.parts.len(),
+        2,
+        "CKKS-lite multiplies fresh (size-2) ciphertexts"
+    );
+    assert_eq!(
+        b.parts.len(),
+        2,
+        "CKKS-lite multiplies fresh (size-2) ciphertexts"
+    );
     let q = a.q();
 
     let d0 = poly_mul(&a.parts[0], &b.parts[0], &q);
@@ -568,7 +650,12 @@ pub fn mul(a: &Ciphertext, b: &Ciphertext) -> Ciphertext {
     let d2 = poly_mul(&a.parts[1], &b.parts[1], &q);
 
     let new_scale = &a.scale * &b.scale;
-    Ciphertext { parts: vec![d0, d1, d2], level: a.level, scale: new_scale, params: a.params.clone() }
+    Ciphertext {
+        parts: vec![d0, d1, d2],
+        level: a.level,
+        scale: new_scale,
+        params: a.params.clone(),
+    }
 }
 
 /// **Modulus switch** — drop one level *without* changing the message scale.
@@ -584,11 +671,7 @@ pub fn mod_switch(ct: &Ciphertext) -> Ciphertext {
     let new_q = ct.params.q_at(new_level);
     let mut new_parts = Vec::with_capacity(ct.parts.len());
     for part in &ct.parts {
-        let switched: Vec<BigInt> = part
-            .coeffs
-            .iter()
-            .map(|c| centre(c, &new_q))
-            .collect();
+        let switched: Vec<BigInt> = part.coeffs.iter().map(|c| centre(c, &new_q)).collect();
         new_parts.push(Poly { coeffs: switched });
     }
     Ciphertext {
@@ -624,7 +707,12 @@ pub fn rescale(ct: &Ciphertext) -> Ciphertext {
     }
 
     let new_scale = &ct.scale / delta;
-    Ciphertext { parts: new_parts, level: new_level, scale: new_scale, params: ct.params.clone() }
+    Ciphertext {
+        parts: new_parts,
+        level: new_level,
+        scale: new_scale,
+        params: ct.params.clone(),
+    }
 }
 
 fn round_div(num: &BigInt, den: &BigInt) -> BigInt {
@@ -645,7 +733,11 @@ pub fn noise_estimate(sk: &SecretKey, ct: &Ciphertext) -> (f64, f64, f64) {
     // polynomial's max absolute coefficient as the magnitude, and the scale
     // tells us roughly how many of those bits are "signal".
     let inf = m.inf_norm();
-    let log_m = if inf.is_zero() { 0.0 } else { (inf.bits() - 1) as f64 };
+    let log_m = if inf.is_zero() {
+        0.0
+    } else {
+        (inf.bits() - 1) as f64
+    };
     let log_q = (ct.q().bits() - 1) as f64;
     let headroom = log_q - log_m;
     (log_m, log_q, headroom.max(0.0))
@@ -666,7 +758,12 @@ mod tests {
         let p = encode(&slots, &params);
         let back = decode(&p, &params, &params.delta);
         for (i, &v) in slots.iter().enumerate() {
-            assert!(approx_eq(back[i], v, 0.01), "slot {i}: got {} want {}", back[i], v);
+            assert!(
+                approx_eq(back[i], v, 0.01),
+                "slot {i}: got {} want {}",
+                back[i],
+                v
+            );
         }
     }
 
@@ -678,7 +775,12 @@ mod tests {
         let ct = encrypt(&pk, &slots);
         let back = decrypt(&sk, &ct);
         for (i, &v) in slots.iter().enumerate() {
-            assert!(approx_eq(back[i], v, 0.05), "slot {i}: got {} want {}", back[i], v);
+            assert!(
+                approx_eq(back[i], v, 0.05),
+                "slot {i}: got {} want {}",
+                back[i],
+                v
+            );
         }
     }
 
@@ -709,7 +811,12 @@ mod tests {
         let prod = rescale(&prod);
         let back = decrypt(&sk, &prod);
         for i in 0..4 {
-            assert!(approx_eq(back[i], a[i] * b[i], 0.5), "slot {i}: got {} want {}", back[i], a[i] * b[i]);
+            assert!(
+                approx_eq(back[i], a[i] * b[i], 0.5),
+                "slot {i}: got {} want {}",
+                back[i],
+                a[i] * b[i]
+            );
         }
     }
 }

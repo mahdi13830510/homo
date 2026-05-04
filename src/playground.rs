@@ -65,12 +65,19 @@ impl Session {
     pub fn toy() -> Self {
         let params = bfv::Params::toy();
         let (pk, sk) = bfv::keygen(&params);
-        Self { params, pk, sk, env: HashMap::new() }
+        Self {
+            params,
+            pk,
+            sk,
+            env: HashMap::new(),
+        }
     }
 
     /// Encrypt a single integer.
     pub fn enc_one(&self, m: i64) -> bfv::Ciphertext {
-        let m_pos = if m >= 0 { m as u64 } else {
+        let m_pos = if m >= 0 {
+            m as u64
+        } else {
             // map negatives into [0, t) the standard way
             let t = self.params.t.to_string().parse::<i64>().unwrap_or(256);
             ((m % t + t) % t) as u64
@@ -150,7 +157,10 @@ impl Session {
             // Bare expression — evaluate and try to decrypt.
             match self.eval_expr(trimmed) {
                 Ok(Value::Plain(p)) => (format!("{p}\n"), false),
-                Ok(Value::Cipher(ct)) => (format!("(ciphertext, dec → {})\n", self.dec_one(&ct)), false),
+                Ok(Value::Cipher(ct)) => (
+                    format!("(ciphertext, dec → {})\n", self.dec_one(&ct)),
+                    false,
+                ),
                 Err(e) => (format!("error: {e}\n"), false),
             }
         }
@@ -230,7 +240,10 @@ fn find_top_level_op(s: &str, op: char) -> Option<usize> {
 /// Run the interactive REPL on stdin/stdout.
 pub fn repl() -> std::io::Result<()> {
     println!("\n{}", "homo lab — interactive playground".bold());
-    println!("{}", "BFV-lite parameters loaded. Type 'help' or 'quit'.".dimmed());
+    println!(
+        "{}",
+        "BFV-lite parameters loaded. Type 'help' or 'quit'.".dimmed()
+    );
     let mut session = Session::toy();
     let stdin = std::io::stdin();
     let stdout = std::io::stdout();
@@ -306,11 +319,14 @@ pub fn run_circuit(source: &str, inputs: &HashMap<String, i64>) -> Result<(u64, 
                 let v = *inputs
                     .get(&name)
                     .ok_or_else(|| format!("missing input: {name}"))?;
-                session.env.insert(name.clone(), Value::Cipher(session.enc_one(v)));
+                session
+                    .env
+                    .insert(name.clone(), Value::Cipher(session.enc_one(v)));
                 log.push_str(&format!("input {name} ← enc({v})\n"));
             }
             CircuitLine::Assign(name, expr) => {
-                let v = session.eval_expr(&expr)
+                let v = session
+                    .eval_expr(&expr)
                     .map_err(|e| format!("line {}: {e}", lineno + 1))?;
                 if let Value::Cipher(ref ct) = v {
                     let (_, log2_n, budget) = bfv::noise_estimate(&session.sk, ct);
@@ -324,7 +340,9 @@ pub fn run_circuit(source: &str, inputs: &HashMap<String, i64>) -> Result<(u64, 
                 session.env.insert(name, v);
             }
             CircuitLine::Return(name) => {
-                let v = session.env.get(&name)
+                let v = session
+                    .env
+                    .get(&name)
                     .ok_or_else(|| format!("return of undefined: {name}"))?;
                 let result = match v {
                     Value::Cipher(ct) => session.dec_one(ct),
@@ -346,7 +364,10 @@ fn parse_line(line: &str) -> Option<CircuitLine> {
         return Some(CircuitLine::Return(name.trim().to_string()));
     }
     let (lhs, rhs) = line.split_once('=')?;
-    Some(CircuitLine::Assign(lhs.trim().to_string(), rhs.trim().to_string()))
+    Some(CircuitLine::Assign(
+        lhs.trim().to_string(),
+        rhs.trim().to_string(),
+    ))
 }
 
 #[cfg(test)]

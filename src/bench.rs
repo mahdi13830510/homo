@@ -131,11 +131,7 @@ pub fn bench_ckks(iters: u32) -> Vec<BenchResult> {
 
 /// Render benchmark results as a coloured table.
 pub fn render(results: &[BenchResult]) -> String {
-    let max = results
-        .iter()
-        .map(|r| r.mean.as_nanos())
-        .max()
-        .unwrap_or(1) as f64;
+    let max = results.iter().map(|r| r.mean.as_nanos()).max().unwrap_or(1) as f64;
     let mut out = String::new();
     out.push_str(&format!(
         "\n{:<22}  {:>12}  {:>12}  {:>5}  {}\n",
@@ -149,7 +145,11 @@ pub fn render(results: &[BenchResult]) -> String {
     for r in results {
         let frac = r.mean.as_nanos() as f64 / max;
         let bar_len = (frac * 28.0) as usize;
-        let bar = format!("{}{}", "█".repeat(bar_len).cyan(), "░".repeat(28 - bar_len).dimmed());
+        let bar = format!(
+            "{}{}",
+            "█".repeat(bar_len).cyan(),
+            "░".repeat(28 - bar_len).dimmed()
+        );
         out.push_str(&format!(
             "{:<22}  {:>12}  {:>12}  {:>5}  {}\n",
             r.name,
