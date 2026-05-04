@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: homo
+            archive: homo-linux-amd64.tar.gz
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: homo.exe
+            archive: homo-windows-amd64.zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.artifact }} homo
+          tar czf ${{ matrix.archive }} homo README.md LICENSE-MIT
+          echo "ASSET=${{ matrix.archive }}" >> $GITHUB_ENV
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.artifact }}" "homo.exe"
+          Compress-Archive -Path homo.exe, README.md, LICENSE-MIT -DestinationPath ${{ matrix.archive }}
+          echo "ASSET=${{ matrix.archive }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          body: |
+            ## homo ${{ github.ref_name }}
+
+            A homomorphic encryption command-line tool — like `openssl`, for FHE.
+
+            ### Install
+
+            Download the binary for your platform below, extract it, and place `homo` (or `homo.exe`) on your `PATH`.
+
+            | Platform | Download |
+            |----------|---------|
+            | Linux x86-64 | `homo-linux-amd64.tar.gz` |
+            | Windows x86-64 | `homo-windows-amd64.zip` |
+
+            Or build from source:
+            ```sh
+            cargo install --git https://github.com/mahdi13830510/homo
+            ```
