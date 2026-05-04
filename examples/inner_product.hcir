@@ -1,0 +1,22 @@
+# Encrypted inner product of two short vectors.
+#
+# Imagine Alice has private features a = (a0, a1, a2)
+# and Bob has public weights w = (3, 5, 2).
+# Bob computes the dot product without ever seeing Alice's data.
+#
+# Run with:
+#   homo circuit examples/inner_product.hcir \
+#       -i a0=4 -i a1=2 -i a2=7
+
+input a0
+input a1
+input a2
+
+t0 = a0 * 3
+t1 = a1 * 5
+t2 = a2 * 2
+
+s1 = t0 + t1
+out = s1 + t2
+
+return out

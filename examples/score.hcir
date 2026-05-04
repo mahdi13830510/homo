@@ -1,0 +1,23 @@
+# Example .hcir circuit: compute a simple weighted score
+#
+# Run with:
+#   homo circuit examples/score.hcir -i age=25 -i income=60 -i score=8
+#
+# The expression evaluates  (age + score) * (income + 10).
+# All inputs are encrypted at load time; arithmetic happens on ciphertexts;
+# the final decryption happens automatically at `return`.
+
+input age
+input income
+input score
+
+# Age + score boosts a base feature
+boosted = age + score
+
+# Income with a small offset
+adjusted = income + 10
+
+# One multiplication — well within the BFV-lite budget
+final = boosted * adjusted
+
+return final
